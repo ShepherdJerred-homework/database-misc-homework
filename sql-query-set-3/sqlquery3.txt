@@ -1,0 +1,60 @@
+#1
+SELECT
+  au_fname,
+  au_lname,
+  COUNT(titleauthor.au_id)
+FROM titleauthor
+  RIGHT JOIN authors ON titleauthor.au_id = authors.au_id
+GROUP BY au_fname, au_lname
+ORDER BY au_fname ASC, au_lname ASC;
+
+#2
+SELECT
+  stores.state,
+  SUM(qty) AS state_qty,
+  authors.au_id
+FROM authors
+  INNER JOIN titleauthor ON authors.au_id = titleauthor.au_id
+  INNER JOIN sales ON titleauthor.title_id = sales.title_id
+  INNER JOIN stores ON sales.stor_id = stores.stor_id
+GROUP BY authors.au_id, stores.state
+HAVING SUM(qty) > 30
+ORDER BY stores.state, state_qty;
+
+#3
+SELECT
+  au_fname,
+  au_lname,
+  state,
+  SUM(QTY) as state_qty
+FROM authors
+  INNER JOIN titleauthor ON authors.au_id = titleauthor.au_id
+  INNER JOIN sales ON titleauthor.title_id = sales.title_id
+WHERE au_lname LIKE 'Green%'
+GROUP BY au_fname, au_lname, state
+ORDER BY au_fname ASC,
+  au_lname ASC,
+  state ASC
+  
+#4
+SELECT
+  title,
+  titles.price
+FROM titles
+  JOIN (SELECT price
+        FROM titles
+        GROUP BY price
+        HAVING COUNT(*) > 1) prices ON titles.price = prices.price
+#5
+SELECT title
+FROM titles
+WHERE NOT EXISTS(
+    SELECT stor_id
+    FROM stores
+    WHERE NOT EXISTS(
+        SELECT stor_id
+        FROM sales
+        WHERE stores.stor_id = sales.stor_id
+              AND titles.title_id = sales.title_id
+    )
+)
